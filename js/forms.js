@@ -88,3 +88,13 @@ function regformhash(form, uid, email, password, conf) {
     form.submit();
     return true;
 }
+
+function editform(form,username,firstname,lastname,active) {
+    if (username.value == '' || firstname.value == '' || lastname.value == '' || active.value == '') {
+        alert('You must provide all the requested details. Please try again');
+        return false;
+    }    
+    console.log(form);
+    form.submit();
+    return true;
+}

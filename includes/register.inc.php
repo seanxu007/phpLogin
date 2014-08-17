@@ -19,11 +19,11 @@
 
 include_once 'db_connect.php';
 include_once 'psl-config.php';
-include_once 'function.php';
+include_once 'functions.php';
 
 $error_msg = "";
 
-if (isset($_POST['username'], $_POST['email'], $_POST['p'])) {
+if (isset($_POST['username'],$_POST['firstname'],$_POST['lastname'], $_POST['email'], $_POST['p'])) {
     // Sanitize and validate the data passed in
     $username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING);
     $firstname = filter_input(INPUT_POST, 'firstname', FILTER_SANITIZE_STRING);
@@ -78,7 +78,6 @@ if (isset($_POST['username'], $_POST['email'], $_POST['p'])) {
         // Insert the new user into the database 
         if ($insert_stmt = $mysqli->prepare("INSERT INTO tmp.user (tmp.user.first_name, tmp.user.last_name, tmp.user.email,tmp.user.create_date,tmp.user.update_date,tmp.user.username, tmp.user.password, tmp.user.salt) values (?, ?, ?, ?, ?, ?, ?, ?)")) {
             $insert_stmt->bind_param('ssssssss', $firstname, $lastname, $email,date("Y-m-d H:i:s"), date("Y-m-d H:i:s"),$username, $password, $random_salt);
-            //, "user", "N", date("Y-m-d H:i:s"), date("Y-m-d H:i:s"), "null", "email", 
             // Execute the prepared query.
             if (! $insert_stmt->execute()) {
                 header('Location: ../error.php?err=Registration failure: INSERT');

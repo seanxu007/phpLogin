@@ -46,7 +46,7 @@ function sec_session_start() {
 
 function login($email, $password, $mysqli) {
     // Using prepared statements means that SQL injection is not possible. 
-    if ($stmt = $mysqli->prepare("SELECT tmp.user.id, tmp.user.username, tmp.user.password, tmp.user.salt 
+    if ($stmt = $mysqli->prepare("SELECT tmp.user.id, tmp.user.username, tmp.user.password, tmp.user.salt, tmp.user.group 
 				  FROM tmp.user 
                                   WHERE tmp.user.email = ? LIMIT 1")) {
         $stmt->bind_param('s', $email);  // Bind "$email" to parameter.
@@ -54,7 +54,7 @@ function login($email, $password, $mysqli) {
         $stmt->store_result();
 
         // get variables from result.
-        $stmt->bind_result($user_id, $username, $db_password, $salt);
+        $stmt->bind_result($user_id, $username, $db_password, $salt, $group);
         $stmt->fetch();
 
         // hash the password with the unique salt.
@@ -83,6 +83,11 @@ function login($email, $password, $mysqli) {
 
                     $_SESSION['username'] = $username;
                     $_SESSION['login_string'] = hash('sha512', $password . $user_browser);
+                    if ($group == "admin") {
+                        $_SESSION['isadmin'] = true;
+                    } else {
+                        $_SESSION['isadmin'] = false;
+                    }
 
                     // Login successful. 
                     return true;
@@ -212,7 +217,8 @@ function esc_url($url) {
         // We're only interested in relative links from $_SERVER['PHP_SELF']
         return '';
     } else {
-        return $url;
+        echo $url;
+//        return $url;
     }
 }
 
@@ -238,5 +244,25 @@ function sendWelcomeEmail($username,$firstname, $lastname, $email) {
     else
     {
       echo "Message sent!";
+    }
+}
+
+function get_user($mysqli, $id = null) {
+    if ($id == null) {
+        $sql = "SELECT tmp.user.id, tmp.user.username, tmp.user.first_name, tmp.user.last_name, tmp.user.email, tmp.user.active, tmp.user.identifier, tmp.user.create_date, tmp.user.salt 
+				  FROM tmp.user order by tmp.user.first_name";
+    } else {
+        $sql = "SELECT tmp.user.id, tmp.user.username, tmp.user.first_name, tmp.user.last_name, tmp.user.email, tmp.user.active, tmp.user.identifier, tmp.user.create_date 
+				  FROM tmp.user where tmp.user.id =".$id;
+    }
+    if ($stmt = $mysqli->prepare($sql)) {
+        $stmt->execute();    // Execute the prepared query.
+        $stmt->store_result();
+
+        return $stmt;
+    } else {
+        // Could not create a prepared statement
+        header("Location: ../error.php?err=Database error: cannot prepare statement");
+        exit();
     }
 }
