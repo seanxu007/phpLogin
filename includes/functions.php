@@ -1,21 +1,5 @@
 <?php
-
-/*
- * Copyright (C) 2013 peredur.net
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+//basic function called in other place
 
 include_once 'psl-config.php';
 include_once 'module/PHPMailer-master/class.phpmailer.php';
@@ -61,24 +45,19 @@ function login($email, $password, $mysqli) {
         $password = hash('sha512', $password . $salt);
         if ($stmt->num_rows == 1) {
             // If the user exists we check if the account is locked
-            // from too many login attempts 
             if (checkbrute($user_id, $mysqli) == true) {
                 // Account is locked 
-                // Send an email to user saying their account is locked 
                 return false;
             } else {
                 // Check if the password in the database matches 
-                // the password the user submitted.
                 if ($db_password == $password) {
                     // Password is correct!
-                    // Get the user-agent string of the user.
                     $user_browser = $_SERVER['HTTP_USER_AGENT'];
 
                     // XSS protection as we might print this value
                     $user_id = preg_replace("/[^0-9]+/", "", $user_id);
                     $_SESSION['user_id'] = $user_id;
 
-                    // XSS protection as we might print this value
                     $username = preg_replace("/[^a-zA-Z0-9_\-]+/", "", $username);
 
                     $_SESSION['username'] = $username;
@@ -92,8 +71,7 @@ function login($email, $password, $mysqli) {
                     // Login successful. 
                     return true;
                 } else {
-                    // Password is not correct 
-                    // We record this attempt in the database 
+                    // Password is not correct, record this attempt
                     $now = time();
                     if (!$mysqli->query("INSERT INTO tmp.login_attempts(tmp.login_attempts.user_id, tmp.login_attempts.time) 
                                     VALUES ('$user_id', '$now')")) {
@@ -151,7 +129,6 @@ function login_check($mysqli) {
         $login_string = $_SESSION['login_string'];
         $username = $_SESSION['username'];
 
-        // Get the user-agent string of the user.
         $user_browser = $_SERVER['HTTP_USER_AGENT'];
 
         if ($stmt = $mysqli->prepare("SELECT tmp.user.password 
@@ -217,12 +194,12 @@ function esc_url($url) {
         // We're only interested in relative links from $_SERVER['PHP_SELF']
         return '';
     } else {
-        echo $url;
-//        return $url;
+        return $url;
     }
 }
 
 function sendWelcomeEmail($username,$firstname, $lastname, $email) {
+    //Send welcome email when register finish
     $mail = new PHPMailer(); // create a new object
     $mail->IsSMTP(); // enable SMTP
     $mail->SMTPDebug = 1; // debugging: 1 = errors and messages, 2 = messages only
@@ -248,6 +225,7 @@ function sendWelcomeEmail($username,$firstname, $lastname, $email) {
 }
 
 function get_user($mysqli, $id = null) {
+    //get user list
     if ($id == null) {
         $sql = "SELECT tmp.user.id, tmp.user.username, tmp.user.first_name, tmp.user.last_name, tmp.user.email, tmp.user.active, tmp.user.identifier, tmp.user.create_date, tmp.user.salt 
 				  FROM tmp.user order by tmp.user.first_name";

@@ -1,21 +1,5 @@
 <?php
-
-/* 
- * Copyright (C) 2013 peter
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+//edit user
 
 include_once 'db_connect.php';
 include_once 'psl-config.php';
@@ -57,7 +41,6 @@ if (isset($_POST['username'], $_POST['firstname'], $_POST['lastname'], $_POST['a
     // update user 
     if ($insert_stmt = $mysqli->prepare("UPDATE tmp.user set tmp.user.username ='$username', tmp.user.first_name='$firstname', tmp.user.last_name='$lastname', tmp.user.active='$active', tmp.user.update_date='".date("Y-m-d H:i:s")."' where tmp.user.id=?")) {
         $insert_stmt->bind_param('i', $id);
-        //, "user", "N", date("Y-m-d H:i:s"), date("Y-m-d H:i:s"), "null", "email", 
         // Execute the prepared query.
         if (! $insert_stmt->execute()) {
             header('Location: ../error.php?err=Registration failure: UPDATE');
