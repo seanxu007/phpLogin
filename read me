@@ -1,0 +1,18 @@
+1.I tried to avoid following attacks:
+SQL Injections
+Session Hijacking
+Network Eavesdropping
+Cross Site Scripting
+Brute Force Attacks
+
+2.Index.php is the default page, which link to login, logout and register.
+
+3.Most of the function is inside include folder, the module inside include folder contains all the library: hybridauth-master and PHPMailer-master.
+
+4.Js folder contain javascript which used for form validation and hash.
+
+5.REST Service function is inside restAPI folder, authentication.php get email and password and send back token, getuser.php get token and send back user list.
+
+6.I forget to save create table sql, so that I crab the 3 tables description as pictures saved in sql_table folder
+
+

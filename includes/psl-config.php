@@ -1,9 +1,9 @@
 <?php
 //configuration parameters
 
-define("HOST", "db1.hubsrv.com"); 		// The host you want to connect to. 
-define("USER", "db_user"); 			// The database username. 
-define("PASSWORD", "Pa55word");                 // The database password. 
+define("HOST", "webserver"); 		// The host you want to connect to. 
+define("USER", "user"); 			// The database username. 
+define("PASSWORD", "password");                 // The database password. 
 define("DATABASE", "tmp");                      // The database name.
 
 
