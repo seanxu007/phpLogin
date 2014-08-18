@@ -122,15 +122,16 @@ function checkbrute($user_id, $mysqli) {
     }
 }
 
-function login_check($mysqli) {
+function login_check($mysqli) {    
     // Check if all session variables are set 
+    error_log('33'.$_SESSION['user_id']);
     if (isset($_SESSION['user_id'], $_SESSION['username'], $_SESSION['login_string'])) {
         $user_id = $_SESSION['user_id'];
         $login_string = $_SESSION['login_string'];
         $username = $_SESSION['username'];
 
         $user_browser = $_SERVER['HTTP_USER_AGENT'];
-
+        
         if ($stmt = $mysqli->prepare("SELECT tmp.user.password 
 				      FROM tmp.user 
 				      WHERE tmp.user.id = ? LIMIT 1")) {
@@ -138,7 +139,7 @@ function login_check($mysqli) {
             $stmt->bind_param('i', $user_id);
             $stmt->execute();   // Execute the prepared query.
             $stmt->store_result();
-
+            
             if ($stmt->num_rows == 1) {
                 // If the user exists get variables from result.
                 $stmt->bind_result($password);
@@ -242,5 +243,80 @@ function get_user($mysqli, $id = null) {
         // Could not create a prepared statement
         header("Location: ../error.php?err=Database error: cannot prepare statement");
         exit();
+    }
+}
+
+function social_login($user_profile,$provider,$mysqli) {
+    //Grab parameter that need to use in mysql database
+    $firstname_social=$user_profile->firstName;
+    $lastName_social=$user_profile->lastName;
+    $email_social=$user_profile->email;
+    $identifier_social=$user_profile->identifier;
+    $username_social=$user_profile->displayName;
+    $user_existing = false;
+    $user_browser = $_SERVER['HTTP_USER_AGENT'];
+    //Check email existing or not
+    $prep_stmt = "SELECT tmp.user.id,tmp.user.username,tmp.user.password,tmp.user.group FROM tmp.user WHERE tmp.user.identifier = ? LIMIT 1";
+    $stmt = $mysqli->prepare($prep_stmt);
+    
+    if ($stmt) {
+        $stmt->bind_param('s', $identifier_social);
+        $stmt->execute();
+        $stmt->store_result();
+        
+        if ($stmt->num_rows == 1) {
+            // A user with this email address already exists 
+            // Login with this user
+            $stmt->bind_result($user_id,$username,$password,$group);
+            $stmt->fetch();
+            $user_existing = true;
+            
+
+            // Set sessions
+            $user_id = preg_replace("/[^0-9]+/", "", $user_id);
+            $_SESSION['user_id'] = $user_id;
+
+            $username = preg_replace("/[^a-zA-Z0-9_\-]+/", "", $username);
+
+            $_SESSION['username'] = $username;
+            $_SESSION['login_string'] = hash('sha512', $password . $user_browser);
+            if ($group == "admin") {
+                $_SESSION['isadmin'] = true;
+            } else {
+                $_SESSION['isadmin'] = false;
+            }
+        }
+    } else {
+        $error_msg .= '<p class="error">Database error</p>';
+    }
+    
+    // No user existing in database, create one
+    if (empty($error_msg) && $user_existing == false) {
+        // Create a random salt
+        $random_salt = hash('sha512', uniqid(openssl_random_pseudo_bytes(16), TRUE));
+
+        // Create salted password 
+        $password_social = hash('sha512', "blankblankblank" . $random_salt);
+
+        // Insert the new user into the database 
+        if ($insert_stmt = $mysqli->prepare("INSERT INTO tmp.user (tmp.user.login_provider,tmp.user.identifier,tmp.user.first_name, tmp.user.last_name, tmp.user.email,tmp.user.create_date,tmp.user.update_date,tmp.user.username, tmp.user.password, tmp.user.salt) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+            $insert_stmt->bind_param('ssssssssss', $provider, $identifier_social, $firstname_social, $lastName_social, $email_social,date("Y-m-d H:i:s"), date("Y-m-d H:i:s"),$username_social, $password_social, $random_salt);
+            // Execute the prepared query.
+            if (! $insert_stmt->execute()) {
+                header('Location: ../error.php?err=Registration failure: INSERT');
+                exit();
+            }
+            // Set sessions
+            $prep_stmt = "SELECT tmp.user.id FROM tmp.user WHERE tmp.user.identifier = ? LIMIT 1";
+            $stmt = $mysqli->prepare($prep_stmt);
+            $stmt->bind_param('s', $identifier_social);
+            $stmt->execute();
+            $stmt->bind_result($user_id_social);
+            $stmt->fetch();
+            $_SESSION['user_id'] = $user_id_social;
+            $_SESSION['username'] = $username_social;
+            $_SESSION['login_string'] = hash('sha512', $password_social . $user_browser);
+            $_SESSION['isadmin'] = false;
+        }
     }
 }

@@ -18,6 +18,11 @@ $stmt->bind_result($id, $username, $firstname, $lastname, $email, $active, $iden
     <body>
         <?php if (login_check($mysqli) == true) : ?>
             <p>Welcome <?php echo htmlentities($_SESSION['username']); ?>!</p>
+            <?php if ($_SESSION['isadmin']) : ?>
+            <input type="button" 
+                               name="add" id="add" value="add"  
+                               onclick="window.location='register.php'" />
+            <?php endif; ?>
             <table style="width:600px">
                 <tr>
                     <td>First Name</td>

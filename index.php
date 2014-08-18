@@ -34,7 +34,9 @@ if (login_check($mysqli) == true) {
             <input type="button" 
                    value="Login" 
                    onclick="formhash(this.form, this.form.password);" /> 
-        </form>
+        </form><br>
+        <a href="includes/login-with.php?provider=Facebook">Login With Facebook</a>
+        <a href="includes/login-with.php?provider=Twitter">Login With Twitter</a>
         <p>If you don't have a login, please <a href="register.php">register</a></p>
         <p>If you are done, please <a href="includes/logout.php">log out</a>.</p>
         <p>You are currently logged <?php echo $logged ?>.</p>
